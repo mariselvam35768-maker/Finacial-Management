@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Financial Management System</title>
+  <meta name="description" content="Secure and responsive single-page Financial Management System with encrypted local storage.">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- ================= AUTH VIEW (SIGN IN / SIGN UP) ================= -->
+    <div id="authView" class="main-card auth-wrapper">
+      <div class="auth-header">
+        <div class="brand-info" style="align-items: center; margin-bottom: 8px;">
+          <h1 class="brand-title">Financial Management System</h1>
+          <div class="brand-badge">
+            <span>Made with</span>
+            <span class="heart-icon"><i class="fa-solid fa-heart"></i></span>
+            <span>by</span>
+            <span class="author-logo"><span class="author-icon"></span> Mariselvam</span>
+          </div>
+        </div>
+        <p class="auth-subtitle">Secure Personal Finance Manager</p>
+      </div>
+
+      <!-- Auth Switcher Tabs -->
+      <div class="auth-tabs">
+        <button id="tabSignInBtn" class="auth-tab-btn active" onclick="switchAuthTab('signin')">Sign In</button>
+        <button id="tabSignUpBtn" class="auth-tab-btn" onclick="switchAuthTab('signup')">Sign Up</button>
+      </div>
+
+      <!-- Sign In Form -->
+      <form id="signInForm" class="auth-form" onsubmit="handleSignIn(event)">
+        <div class="input-group">
+          <label for="signinEmail">Email Address</label>
+          <input type="email" id="signinEmail" class="pill-input" placeholder="name@example.com" required autocomplete="email">
+        </div>
+        <div class="input-group">
+          <label for="signinPassword">Password</label>
+          <div class="input-with-icon">
+            <input type="password" id="signinPassword" class="pill-input" placeholder="Enter your password" required autocomplete="current-password">
+            <button type="button" class="btn-toggle-pwd" onclick="togglePasswordVisibility('signinPassword', this)" title="Show/Hide Password">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+        </div>
+        
+        <div class="encryption-notice">
+          <i class="fa-solid fa-shield-halved" style="font-size: 16px;"></i>
+          <span><strong>Client-Side Encrypted:</strong> Passwords are hashed with SHA-256 + Salt and all financial data is stored encrypted in your browser's local storage.</span>
+        </div>
+
+        <button type="submit" class="btn-submit-auth">Sign In to Dashboard</button>
+      </form>
+
+      <!-- Sign Up Form -->
+      <form id="signUpForm" class="auth-form" style="display: none;" onsubmit="handleSignUp(event)">
+        <div class="input-group">
+          <label for="signupName">Full Name</label>
+          <input type="text" id="signupName" class="pill-input" placeholder="e.g. John Doe" required autocomplete="name">
+        </div>
+        <div class="input-group">
+          <label for="signupEmail">Email Address</label>
+          <input type="email" id="signupEmail" class="pill-input" placeholder="name@example.com" required autocomplete="email">
+        </div>
+        <div class="input-group">
+          <label for="signupPassword">Create Password</label>
+          <div class="input-with-icon">
+            <input type="password" id="signupPassword" class="pill-input" placeholder="Minimum 6 characters" required minlength="6" autocomplete="new-password">
+            <button type="button" class="btn-toggle-pwd" onclick="togglePasswordVisibility('signupPassword', this)" title="Show/Hide Password">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+        </div>
+        <div class="input-group">
+          <label for="signupConfirmPassword">Confirm Password</label>
+          <div class="input-with-icon">
+            <input type="password" id="signupConfirmPassword" class="pill-input" placeholder="Re-enter password" required minlength="6" autocomplete="new-password">
+            <button type="button" class="btn-toggle-pwd" onclick="togglePasswordVisibility('signupConfirmPassword', this)" title="Show/Hide Password">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="encryption-notice">
+          <i class="fa-solid fa-lock" style="font-size: 16px;"></i>
+          <span>Password is encrypted before saving in local storage. Plain password is never exposed.</span>
+        </div>
+
+        <button type="submit" class="btn-submit-auth">Create Secure Account</button>
+      </form>
+    </div>
+
+    <!-- ================= DASHBOARD VIEW ================= -->
+    <div id="dashboardView" class="main-card" style="display: none;">
+      
+      <!-- Top Brand Header -->
+      <header class="app-header">
+        <div class="brand-info">
+          <h1 class="brand-title">Financial Management System</h1>
+          <div class="brand-badge">
+            <span>Made with</span>
+            <span class="heart-icon"><i class="fa-solid fa-heart"></i></span>
+            <span>by</span>
+            <span class="author-logo"><span class="author-icon"></span> Mariselvam</span>
+          </div>
+        </div>
+
+        <!-- Right Header with user & logout -->
+        <div class="header-actions">
+          <div class="security-badge" title="Data is encrypted in LocalStorage">
+            <i class="fa-solid fa-lock"></i> Encrypted
+          </div>
+          <div class="user-pill">
+            <div class="user-avatar" id="userAvatar">U</div>
+            <span id="userNameDisplay">User</span>
+          </div>
+          <button class="btn-logout" onclick="handleLogout()" title="Log out">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Main Balance Blue Box (matches screenshot) -->
+      <section class="balance-card">
+        <div class="balance-title">Total Balance</div>
+        <div class="balance-amount" id="totalBalanceDisplay">Rs.0.00</div>
+        
+        <div class="balance-sub-panel">
+          <div class="income-indicator">
+            <span class="indicator-label"><i class="fa-solid fa-arrow-up"></i> Income</span>
+            <span class="indicator-amount" id="totalIncomeDisplay">Rs.0.00</span>
+          </div>
+          <div class="expense-indicator">
+            <span class="indicator-label"><i class="fa-solid fa-arrow-down"></i> Expense</span>
+            <span class="indicator-amount" id="totalExpenseDisplay">Rs.0.00</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Progress Ratio Bar -->
+      <div class="progress-bar-container" title="Income vs Expense distribution">
+        <div class="progress-bar-fill" id="progressBarFill"></div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons-group">
+        <button class="btn-action btn-expense" onclick="openExpenseModal()">
+          Add Expense
+        </button>
+        <button class="btn-action btn-income" onclick="openIncomeModal()">
+          Add Income
+        </button>
+      </div>
+
+      <!-- Filter, Search and Export Toolbar -->
+      <div class="toolbar-section">
+        <div class="filter-chips">
+          <button class="chip-btn active" data-filter="all" onclick="setFilter('all')">All</button>
+          <button class="chip-btn" data-filter="income" onclick="setFilter('income')">Incomes</button>
+          <button class="chip-btn" data-filter="expense" onclick="setFilter('expense')">Expenses</button>
+        </div>
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" id="searchInput" placeholder="Search transactions..." oninput="handleSearch(this.value)">
+        </div>
+        <button class="btn-export-excel" onclick="exportToExcel()" title="Download Incomes & Expenses as Excel Sheet">
+          <i class="fa-solid fa-file-excel"></i>
+          <span>Export Excel</span>
+        </button>
+      </div>
+
+      <!-- Transactions List Container -->
+      <div id="transactionsContainer" class="transactions-list">
+        <!-- Will be dynamically populated or show empty state -->
+      </div>
+
+      <!-- Empty State Indicator -->
+      <div id="emptyState" class="empty-state">
+        There are no incomes or investments to show!
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ================= ADD INCOME MODAL ================= -->
+  <div id="incomeModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="brand-info">
+          <h2 class="brand-title">Financial Management System</h2>
+          <div class="brand-badge">
+            <span>Made with</span>
+            <span class="heart-icon"><i class="fa-solid fa-heart"></i></span>
+            <span>by</span>
+            <span class="author-logo"><span class="author-icon"></span> Mariselvam</span>
+          </div>
+        </div>
+        <button class="btn-close-modal" onclick="closeModal('incomeModal')">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <form class="modal-body" onsubmit="handleAddIncome(event)">
+        <input type="text" id="incomeSource" class="modal-input" placeholder="Income Source" required>
+        <input type="text" id="incomeType" class="modal-input" placeholder="Income Type" required>
+        <input type="number" id="incomeAmount" class="modal-input" placeholder="Income Ammount" step="any" min="0.01" required>
+        <button type="submit" class="btn-modal-submit income-submit">Add Ammount</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= ADD EXPENSE MODAL ================= -->
+  <div id="expenseModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="brand-info">
+          <h2 class="brand-title">Financial Management System</h2>
+          <div class="brand-badge">
+            <span>Made with</span>
+            <span class="heart-icon"><i class="fa-solid fa-heart"></i></span>
+            <span>by</span>
+            <span class="author-logo"><span class="author-icon"></span> Mariselvam</span>
+          </div>
+        </div>
+        <button class="btn-close-modal" onclick="closeModal('expenseModal')">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <form class="modal-body" onsubmit="handleAddExpense(event)">
+        <input type="text" id="productName" class="modal-input" placeholder="Product Name" required>
+        <input type="text" id="productType" class="modal-input" placeholder="Product Type" required>
+        <input type="number" id="productCost" class="modal-input" placeholder="Product Cost" step="any" min="0.01" required>
+        <button type="submit" class="btn-modal-submit expense-submit">Add Product</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= EDIT TRANSACTION MODAL ================= -->
+  <div id="editModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="brand-info">
+          <h2 class="brand-title" id="editModalTitle">Edit Item</h2>
+          <div class="brand-badge">
+            <span>Made with</span>
+            <span class="heart-icon"><i class="fa-solid fa-heart"></i></span>
+            <span>by</span>
+            <span class="author-logo"><span class="author-icon"></span> Mariselvam</span>
+          </div>
+        </div>
+        <button class="btn-close-modal" onclick="closeModal('editModal')">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <form class="modal-body" onsubmit="handleUpdateTransaction(event)">
+        <input type="hidden" id="editItemId">
+        <input type="hidden" id="editItemType">
+        <input type="text" id="editTitle" class="modal-input" placeholder="Source / Product Name" required>
+        <input type="text" id="editCategory" class="modal-input" placeholder="Type / Category" required>
+        <input type="number" id="editAmount" class="modal-input" placeholder="Amount" step="any" min="0.01" required>
+        <button type="submit" id="editSubmitBtn" class="btn-modal-submit income-submit">Update Record</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Script Files -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="crypto.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
