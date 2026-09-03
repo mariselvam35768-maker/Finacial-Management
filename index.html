@@ -55,13 +55,10 @@
           </div>
         </div>
 
-        <div class="encryption-notice">
-          <i class="fa-solid fa-shield-halved" style="font-size: 16px;"></i>
-          <span><strong>Client-Side Encrypted:</strong> Passwords are hashed with SHA-256 + Salt and all financial data
-            is stored encrypted in your browser's local storage.</span>
-        </div>
+
 
         <button type="submit" class="btn-submit-auth">Sign In to Dashboard</button>
+        <p class="auth-toggle-text">Don't have an account? <a href="javascript:void(0)" onclick="switchAuthTab('signup')">Sign Up here</a></p>
       </form>
 
       <!-- Sign Up Form -->
@@ -105,6 +102,7 @@
         </div>
 
         <button type="submit" class="btn-submit-auth">Create Secure Account</button>
+        <p class="auth-toggle-text">Already have an account? <a href="javascript:void(0)" onclick="switchAuthTab('signin')">Sign In here</a></p>
       </form>
     </div>
 

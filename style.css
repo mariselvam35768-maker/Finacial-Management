@@ -771,6 +771,25 @@ body::after {
   transform: translateY(-1px);
 }
 
+.auth-toggle-text {
+  text-align: center;
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 6px;
+}
+
+.auth-toggle-text a {
+  color: var(--primary-cyan);
+  font-weight: 700;
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.auth-toggle-text a:hover {
+  color: var(--primary-cyan-hover);
+  text-decoration: underline;
+}
+
 /* ================= MODAL WINDOWS ================= */
 .modal-backdrop {
   position: fixed;

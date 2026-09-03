@@ -81,13 +81,15 @@ function togglePasswordVisibility(inputId, btn) {
  * Gets all encrypted users from LocalStorage
  */
 async function getRegisteredUsers() {
-  const encryptedPayload = localStorage.getItem('fms_users_vault');
-  if (!encryptedPayload) return [];
-  const decrypted = await window.secureStorage.decryptData(encryptedPayload);
-  if (!decrypted) return [];
   try {
-    return JSON.parse(decrypted);
-  } catch {
+    const encryptedPayload = localStorage.getItem('fms_users_vault');
+    if (!encryptedPayload) return [];
+    const decrypted = await window.secureStorage.decryptData(encryptedPayload);
+    if (!decrypted) return [];
+    const parsed = JSON.parse(decrypted);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    console.error('Error reading registered users:', err);
     return [];
   }
 }
@@ -96,9 +98,13 @@ async function getRegisteredUsers() {
  * Saves users list into encrypted LocalStorage
  */
 async function saveRegisteredUsers(users) {
-  const jsonString = JSON.stringify(users);
-  const encrypted = await window.secureStorage.encryptData(jsonString);
-  localStorage.setItem('fms_users_vault', encrypted);
+  try {
+    const jsonString = JSON.stringify(users);
+    const encrypted = await window.secureStorage.encryptData(jsonString);
+    localStorage.setItem('fms_users_vault', encrypted);
+  } catch (err) {
+    console.error('Error saving registered users:', err);
+  }
 }
 
 /**
@@ -106,54 +112,75 @@ async function saveRegisteredUsers(users) {
  */
 async function handleSignUp(event) {
   event.preventDefault();
-  const name = document.getElementById('signupName').value.trim();
-  const email = document.getElementById('signupEmail').value.trim().toLowerCase();
-  const password = document.getElementById('signupPassword').value;
-  const confirmPassword = document.getElementById('signupConfirmPassword').value;
+  try {
+    const name = document.getElementById('signupName').value.trim();
+    const email = document.getElementById('signupEmail').value.trim().toLowerCase();
+    const password = document.getElementById('signupPassword').value;
+    const confirmPassword = document.getElementById('signupConfirmPassword').value;
 
-  if (password !== confirmPassword) {
-    showToast('Passwords do not match!', 'error');
-    return;
+    if (!name || !email || !password) {
+      showToast('Please fill in all required fields.', 'error');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      showToast('Passwords do not match!', 'error');
+      return;
+    }
+
+    if (password.length < 6) {
+      showToast('Password must be at least 6 characters.', 'error');
+      return;
+    }
+
+    const users = await getRegisteredUsers();
+    const emailHash = await window.secureStorage.hashPassword(email);
+    
+    // Check if user already exists
+    const existing = users.find(u => 
+      (u.email && u.email.toLowerCase() === email) || 
+      (u.emailHash && u.emailHash === emailHash)
+    );
+
+    if (existing) {
+      showToast('Account already exists for this email! Switching to Sign In...', 'error');
+      switchAuthTab('signin');
+      document.getElementById('signinEmail').value = email;
+      document.getElementById('signinPassword').focus();
+      return;
+    }
+
+    const passwordHash = await window.secureStorage.hashPassword(password);
+    
+    const newUser = {
+      id: 'usr_' + Date.now(),
+      name: name,
+      email: email,
+      emailHash: emailHash,
+      passwordHash: passwordHash,
+      createdAt: new Date().toISOString()
+    };
+
+    users.push(newUser);
+    await saveRegisteredUsers(users);
+
+    // Initialize new user with sample default entries
+    currentUser = newUser;
+    currentTransactions = [...sampleInitialData];
+    await saveUserData();
+
+    // Save session
+    await setSession(newUser);
+
+    // Reset signup inputs
+    document.getElementById('signUpForm').reset();
+
+    showToast('Account created securely! Welcome ' + name, 'success');
+    showDashboard();
+  } catch (err) {
+    console.error('Sign up error:', err);
+    showToast('Sign up error: ' + (err.message || 'Please try again'), 'error');
   }
-
-  if (password.length < 6) {
-    showToast('Password must be at least 6 characters.', 'error');
-    return;
-  }
-
-  const users = await getRegisteredUsers();
-  const emailHash = await window.secureStorage.hashPassword(email);
-  const existing = users.find(u => u.emailHash === emailHash);
-
-  if (existing) {
-    showToast('Account with this email already exists!', 'error');
-    return;
-  }
-
-  const passwordHash = await window.secureStorage.hashPassword(password);
-  
-  const newUser = {
-    id: 'usr_' + Date.now(),
-    name: name,
-    email: email,
-    emailHash: emailHash,
-    passwordHash: passwordHash,
-    createdAt: new Date().toISOString()
-  };
-
-  users.push(newUser);
-  await saveRegisteredUsers(users);
-
-  // Initialize new user with sample default entries (or empty)
-  currentUser = newUser;
-  currentTransactions = [...sampleInitialData];
-  await saveUserData();
-
-  // Save session
-  await setSession(newUser);
-
-  showToast('Account created securely! Logged in.', 'success');
-  showDashboard();
 }
 
 /**
@@ -161,52 +188,88 @@ async function handleSignUp(event) {
  */
 async function handleSignIn(event) {
   event.preventDefault();
-  const email = document.getElementById('signinEmail').value.trim().toLowerCase();
-  const password = document.getElementById('signinPassword').value;
+  try {
+    const email = document.getElementById('signinEmail').value.trim().toLowerCase();
+    const password = document.getElementById('signinPassword').value;
 
-  const users = await getRegisteredUsers();
-  const emailHash = await window.secureStorage.hashPassword(email);
-  const passwordHash = await window.secureStorage.hashPassword(password);
+    if (!email || !password) {
+      showToast('Please enter both email and password', 'error');
+      return;
+    }
 
-  const user = users.find(u => u.emailHash === emailHash && u.passwordHash === passwordHash);
+    const users = await getRegisteredUsers();
 
-  if (!user) {
-    showToast('Invalid email or password!', 'error');
-    return;
+    if (!users || users.length === 0) {
+      showToast('No registered accounts found on this browser. Please Sign Up first!', 'error');
+      switchAuthTab('signup');
+      document.getElementById('signupEmail').value = email;
+      return;
+    }
+
+    const emailHash = await window.secureStorage.hashPassword(email);
+    const passwordHash = await window.secureStorage.hashPassword(password);
+
+    // Find user by email or emailHash
+    const user = users.find(u => 
+      (u.email && u.email.toLowerCase() === email) || 
+      (u.emailHash && u.emailHash === emailHash)
+    );
+
+    if (!user) {
+      showToast('No account found with this email. Please click Sign Up first!', 'error');
+      return;
+    }
+
+    const isPasswordValid = (user.passwordHash && user.passwordHash === passwordHash) ||
+                            (user.password && user.password === password);
+
+    if (!isPasswordValid) {
+      showToast('Incorrect password! Please try again.', 'error');
+      return;
+    }
+
+    currentUser = user;
+    await setSession(user);
+    await loadUserData();
+
+    document.getElementById('signinPassword').value = '';
+
+    showToast(`Welcome back, ${user.name || user.email}!`, 'success');
+    showDashboard();
+  } catch (err) {
+    console.error('Sign in error:', err);
+    showToast('Sign in failed: ' + (err.message || 'Please try again'), 'error');
   }
-
-  currentUser = user;
-  await setSession(user);
-  await loadUserData();
-
-  showToast(`Welcome back, ${user.name}!`, 'success');
-  showDashboard();
 }
 
 async function setSession(user) {
-  const sessionToken = await window.secureStorage.encryptData(
-    JSON.stringify({ id: user.id, email: user.email, name: user.name, timestamp: Date.now() })
-  );
-  localStorage.setItem('fms_active_session', sessionToken);
+  try {
+    const sessionToken = await window.secureStorage.encryptData(
+      JSON.stringify({ id: user.id, email: user.email, name: user.name, timestamp: Date.now() })
+    );
+    localStorage.setItem('fms_active_session', sessionToken);
+  } catch (err) {
+    console.error('Error saving session:', err);
+  }
 }
 
 async function checkExistingSession() {
-  const sessionToken = localStorage.getItem('fms_active_session');
-  if (!sessionToken) {
-    showAuth();
-    return;
-  }
-
-  const decrypted = await window.secureStorage.decryptData(sessionToken);
-  if (!decrypted) {
-    showAuth();
-    return;
-  }
-
   try {
+    const sessionToken = localStorage.getItem('fms_active_session');
+    if (!sessionToken) {
+      showAuth();
+      return;
+    }
+
+    const decrypted = await window.secureStorage.decryptData(sessionToken);
+    if (!decrypted) {
+      showAuth();
+      return;
+    }
+
     const sessionObj = JSON.parse(decrypted);
     const users = await getRegisteredUsers();
-    const user = users.find(u => u.email === sessionObj.email);
+    const user = users.find(u => (u.email && u.email.toLowerCase() === sessionObj.email?.toLowerCase()) || u.id === sessionObj.id);
 
     if (user) {
       currentUser = user;
@@ -215,7 +278,8 @@ async function checkExistingSession() {
     } else {
       showAuth();
     }
-  } catch {
+  } catch (err) {
+    console.error('Session check failed:', err);
     showAuth();
   }
 }
@@ -225,6 +289,7 @@ function handleLogout() {
   currentUser = null;
   currentTransactions = [];
   showToast('Logged out successfully', 'info');
+  switchAuthTab('signin');
   showAuth();
 }
 
@@ -249,33 +314,47 @@ function showDashboard() {
 
 async function loadUserData() {
   if (!currentUser) return;
-  const storageKey = 'fms_data_' + currentUser.emailHash;
-  const encryptedData = localStorage.getItem(storageKey);
+  try {
+    const keyIdentifier = currentUser.emailHash || await window.secureStorage.hashPassword(currentUser.email);
+    const storageKey = 'fms_data_' + keyIdentifier;
+    const encryptedData = localStorage.getItem(storageKey);
 
-  if (!encryptedData) {
-    currentTransactions = [...sampleInitialData];
-    await saveUserData();
-    return;
-  }
+    if (!encryptedData) {
+      currentTransactions = [...sampleInitialData];
+      await saveUserData();
+      return;
+    }
 
-  const decrypted = await window.secureStorage.decryptData(encryptedData, currentUser.passwordHash);
-  if (decrypted) {
-    try {
-      currentTransactions = JSON.parse(decrypted);
-    } catch {
+    const secretKey = currentUser.passwordHash || currentUser.email;
+    const decrypted = await window.secureStorage.decryptData(encryptedData, secretKey);
+    if (decrypted) {
+      try {
+        const parsed = JSON.parse(decrypted);
+        currentTransactions = Array.isArray(parsed) ? parsed : [];
+      } catch {
+        currentTransactions = [];
+      }
+    } else {
       currentTransactions = [];
     }
-  } else {
+  } catch (err) {
+    console.error('Error loading user data:', err);
     currentTransactions = [];
   }
 }
 
 async function saveUserData() {
   if (!currentUser) return;
-  const storageKey = 'fms_data_' + currentUser.emailHash;
-  const jsonString = JSON.stringify(currentTransactions);
-  const encrypted = await window.secureStorage.encryptData(jsonString, currentUser.passwordHash);
-  localStorage.setItem(storageKey, encrypted);
+  try {
+    const keyIdentifier = currentUser.emailHash || await window.secureStorage.hashPassword(currentUser.email);
+    const storageKey = 'fms_data_' + keyIdentifier;
+    const jsonString = JSON.stringify(currentTransactions);
+    const secretKey = currentUser.passwordHash || currentUser.email;
+    const encrypted = await window.secureStorage.encryptData(jsonString, secretKey);
+    localStorage.setItem(storageKey, encrypted);
+  } catch (err) {
+    console.error('Error saving user data:', err);
+  }
 }
 
 /* ================= MODALS & CRUD OPERATIONS ================= */
