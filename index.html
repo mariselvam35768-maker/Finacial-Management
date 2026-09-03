@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Financial Management System</title>
-  <meta name="description" content="Secure and responsive single-page Financial Management System with encrypted local storage.">
+  <meta name="description"
+    content="Secure and responsive single-page Financial Management System with encrypted local storage.">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
 
   <div class="app-container">
@@ -37,21 +40,25 @@
       <form id="signInForm" class="auth-form" onsubmit="handleSignIn(event)">
         <div class="input-group">
           <label for="signinEmail">Email Address</label>
-          <input type="email" id="signinEmail" class="pill-input" placeholder="name@example.com" required autocomplete="email">
+          <input type="email" id="signinEmail" class="pill-input" placeholder="name@example.com" required
+            autocomplete="email">
         </div>
         <div class="input-group">
           <label for="signinPassword">Password</label>
           <div class="input-with-icon">
-            <input type="password" id="signinPassword" class="pill-input" placeholder="Enter your password" required autocomplete="current-password">
-            <button type="button" class="btn-toggle-pwd" onclick="togglePasswordVisibility('signinPassword', this)" title="Show/Hide Password">
+            <input type="password" id="signinPassword" class="pill-input" placeholder="Enter your password" required
+              autocomplete="current-password">
+            <button type="button" class="btn-toggle-pwd" onclick="togglePasswordVisibility('signinPassword', this)"
+              title="Show/Hide Password">
               <i class="fa-regular fa-eye"></i>
             </button>
           </div>
         </div>
-        
+
         <div class="encryption-notice">
           <i class="fa-solid fa-shield-halved" style="font-size: 16px;"></i>
-          <span><strong>Client-Side Encrypted:</strong> Passwords are hashed with SHA-256 + Salt and all financial data is stored encrypted in your browser's local storage.</span>
+          <span><strong>Client-Side Encrypted:</strong> Passwords are hashed with SHA-256 + Salt and all financial data
+            is stored encrypted in your browser's local storage.</span>
         </div>
 
         <button type="submit" class="btn-submit-auth">Sign In to Dashboard</button>
@@ -61,17 +68,21 @@
       <form id="signUpForm" class="auth-form" style="display: none;" onsubmit="handleSignUp(event)">
         <div class="input-group">
           <label for="signupName">Full Name</label>
-          <input type="text" id="signupName" class="pill-input" placeholder="e.g. John Doe" required autocomplete="name">
+          <input type="text" id="signupName" class="pill-input" placeholder="e.g. John Doe" required
+            autocomplete="name">
         </div>
         <div class="input-group">
           <label for="signupEmail">Email Address</label>
-          <input type="email" id="signupEmail" class="pill-input" placeholder="name@example.com" required autocomplete="email">
+          <input type="email" id="signupEmail" class="pill-input" placeholder="name@example.com" required
+            autocomplete="email">
         </div>
         <div class="input-group">
           <label for="signupPassword">Create Password</label>
           <div class="input-with-icon">
-            <input type="password" id="signupPassword" class="pill-input" placeholder="Minimum 6 characters" required minlength="6" autocomplete="new-password">
-            <button type="button" class="btn-toggle-pwd" onclick="togglePasswordVisibility('signupPassword', this)" title="Show/Hide Password">
+            <input type="password" id="signupPassword" class="pill-input" placeholder="Minimum 6 characters" required
+              minlength="6" autocomplete="new-password">
+            <button type="button" class="btn-toggle-pwd" onclick="togglePasswordVisibility('signupPassword', this)"
+              title="Show/Hide Password">
               <i class="fa-regular fa-eye"></i>
             </button>
           </div>
@@ -79,8 +90,10 @@
         <div class="input-group">
           <label for="signupConfirmPassword">Confirm Password</label>
           <div class="input-with-icon">
-            <input type="password" id="signupConfirmPassword" class="pill-input" placeholder="Re-enter password" required minlength="6" autocomplete="new-password">
-            <button type="button" class="btn-toggle-pwd" onclick="togglePasswordVisibility('signupConfirmPassword', this)" title="Show/Hide Password">
+            <input type="password" id="signupConfirmPassword" class="pill-input" placeholder="Re-enter password"
+              required minlength="6" autocomplete="new-password">
+            <button type="button" class="btn-toggle-pwd"
+              onclick="togglePasswordVisibility('signupConfirmPassword', this)" title="Show/Hide Password">
               <i class="fa-regular fa-eye"></i>
             </button>
           </div>
@@ -97,7 +110,7 @@
 
     <!-- ================= DASHBOARD VIEW ================= -->
     <div id="dashboardView" class="main-card" style="display: none;">
-      
+
       <!-- Top Brand Header -->
       <header class="app-header">
         <div class="brand-info">
@@ -129,7 +142,7 @@
       <section class="balance-card">
         <div class="balance-title">Total Balance</div>
         <div class="balance-amount" id="totalBalanceDisplay">Rs.0.00</div>
-        
+
         <div class="balance-sub-panel">
           <div class="income-indicator">
             <span class="indicator-label"><i class="fa-solid fa-arrow-up"></i> Income</span>
@@ -208,7 +221,8 @@
       <form class="modal-body" onsubmit="handleAddIncome(event)">
         <input type="text" id="incomeSource" class="modal-input" placeholder="Income Source" required>
         <input type="text" id="incomeType" class="modal-input" placeholder="Income Type" required>
-        <input type="number" id="incomeAmount" class="modal-input" placeholder="Income Ammount" step="any" min="0.01" required>
+        <input type="number" id="incomeAmount" class="modal-input" placeholder="Income Ammount" step="any" min="0.01"
+          required>
         <button type="submit" class="btn-modal-submit income-submit">Add Ammount</button>
       </form>
     </div>
@@ -234,7 +248,8 @@
       <form class="modal-body" onsubmit="handleAddExpense(event)">
         <input type="text" id="productName" class="modal-input" placeholder="Product Name" required>
         <input type="text" id="productType" class="modal-input" placeholder="Product Type" required>
-        <input type="number" id="productCost" class="modal-input" placeholder="Product Cost" step="any" min="0.01" required>
+        <input type="number" id="productCost" class="modal-input" placeholder="Product Cost" step="any" min="0.01"
+          required>
         <button type="submit" class="btn-modal-submit expense-submit">Add Product</button>
       </form>
     </div>
@@ -276,4 +291,5 @@
   <script src="crypto.js"></script>
   <script src="app.js"></script>
 </body>
+
 </html>
