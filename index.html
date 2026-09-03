@@ -96,11 +96,6 @@
           </div>
         </div>
 
-        <div class="encryption-notice">
-          <i class="fa-solid fa-lock" style="font-size: 16px;"></i>
-          <span>Password is encrypted before saving in local storage. Plain password is never exposed.</span>
-        </div>
-
         <button type="submit" class="btn-submit-auth">Create Secure Account</button>
         <p class="auth-toggle-text">Already have an account? <a href="javascript:void(0)" onclick="switchAuthTab('signin')">Sign In here</a></p>
       </form>
@@ -123,9 +118,10 @@
 
         <!-- Right Header with user & logout -->
         <div class="header-actions">
-          <div class="security-badge" title="Data is encrypted in LocalStorage">
-            <i class="fa-solid fa-lock"></i> Encrypted
-          </div>
+          <button id="cloudStatusBtn" class="cloud-pill" onclick="openCloudModal()" title="Cloud Sync Settings">
+            <i class="fa-solid fa-cloud"></i>
+            <span id="cloudStatusText">Cloud</span>
+          </button>
           <div class="user-pill">
             <div class="user-avatar" id="userAvatar">U</div>
             <span id="userNameDisplay">User</span>
@@ -281,11 +277,64 @@
     </div>
   </div>
 
+  <!-- ================= CLOUD SYNC SETTINGS MODAL ================= -->
+  <div id="cloudModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="brand-info">
+          <h2 class="brand-title">Cross-Device Cloud Sync</h2>
+          <div class="brand-badge">
+            <span>Powered by</span>
+            <span class="heart-icon"><i class="fa-solid fa-bolt"></i></span>
+            <span>Google Firebase</span>
+          </div>
+        </div>
+        <button class="btn-close-modal" onclick="closeModal('cloudModal')">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 13px; color: #64748b; line-height: 1.5; margin-bottom: 12px;">
+          To log in from any mobile, tablet, or browser with cross-device real-time sync, connect your free Google Firebase project:
+        </p>
+
+        <div class="cloud-guide-box">
+          <strong>Quick Setup (Free &amp; 1-Minute):</strong>
+          <ol style="margin-left: 18px; margin-top: 6px; font-size: 12px; color: #475569; line-height: 1.6;">
+            <li>Go to <a href="https://console.firebase.google.com/" target="_blank" style="color: var(--primary-cyan); font-weight: 600;">Firebase Console</a> and click <b>Create a Project</b>.</li>
+            <li>In <b>Authentication</b>, enable <b>Email/Password</b> sign-in provider.</li>
+            <li>In <b>Firestore Database</b>, click <b>Create database</b> (Test mode).</li>
+            <li>In <b>Project Settings &gt; General</b>, scroll down to <b>Your apps</b> &gt; click <b>Web (&lt;/&gt;)</b> &gt; copy your config below:</li>
+          </ol>
+        </div>
+
+        <form id="firebaseConfigForm" onsubmit="handleSaveCloudConfig(event)" style="display: flex; flex-direction: column; gap: 10px; margin-top: 14px;">
+          <input type="text" id="fbApiKey" class="modal-input" placeholder="apiKey (e.g. AIzaSy...)" required>
+          <input type="text" id="fbAuthDomain" class="modal-input" placeholder="authDomain (e.g. project.firebaseapp.com)" required>
+          <input type="text" id="fbProjectId" class="modal-input" placeholder="projectId (e.g. my-finance-app)" required>
+          <input type="text" id="fbStorageBucket" class="modal-input" placeholder="storageBucket (e.g. project.appspot.com)">
+          <input type="text" id="fbMessagingSenderId" class="modal-input" placeholder="messagingSenderId">
+          <input type="text" id="fbAppId" class="modal-input" placeholder="appId (e.g. 1:123456:web:abc...)">
+
+          <div style="display: flex; gap: 10px; margin-top: 8px;">
+            <button type="submit" class="btn-modal-submit income-submit" style="flex: 2;">Save &amp; Connect Cloud</button>
+            <button type="button" class="btn-modal-submit" onclick="handleClearCloudConfig()" style="flex: 1; background: #f1f5f9; color: #475569;">Reset</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notification Container -->
   <div id="toastContainer" class="toast-container"></div>
 
   <!-- Script Files -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- Firebase SDKs (v10 compat for browser compatibility) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
   <script src="crypto.js"></script>
   <script src="app.js"></script>
 </body>
